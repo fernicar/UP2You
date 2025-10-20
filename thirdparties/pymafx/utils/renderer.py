@@ -1,4 +1,3 @@
-import imp
 import os
 from pickle import NONE
 # os.environ['PYOPENGL_PLATFORM'] = 'osmesa'
