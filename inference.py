@@ -2,6 +2,15 @@ import os
 import argparse
 import torch
 import numpy as np
+# NumPy 2.x compatibility for deprecated aliases
+if not hasattr(np, 'bool'):
+    np.bool = np.bool_
+if not hasattr(np, 'int'):
+    np.int = int
+if not hasattr(np, 'float'):
+    np.float = float
+if not hasattr(np, 'complex'):
+    np.complex = complex
 from PIL import Image, ImageOps
 from torchvision.utils import save_image
 from up2you.utils.img_utils import load_image, process_image_rgba
