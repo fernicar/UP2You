@@ -3,14 +3,15 @@ import argparse
 import torch
 import numpy as np
 # NumPy 2.x compatibility for deprecated aliases (avoid touching when present to prevent warnings)
-if 'bool' not in np.__dict__:
-    np.bool = np.bool_
-if 'int' not in np.__dict__:
-    np.int = int
-if 'float' not in np.__dict__:
-    np.float = float
-if 'complex' not in np.__dict__:
-    np.complex = complex
+# Use hasattr/setattr to avoid static attribute-access errors when aliases are removed.
+if not hasattr(np, "bool"):
+    setattr(np, "bool", np.bool_)
+if not hasattr(np, "int"):
+    setattr(np, "int", int)
+if not hasattr(np, "float"):
+    setattr(np, "float", float)
+if not hasattr(np, "complex"):
+    setattr(np, "complex", complex)
 from PIL import Image, ImageOps
 from torchvision.utils import save_image
 from up2you.utils.img_utils import load_image, process_image_rgba
@@ -23,7 +24,7 @@ from up2you.schedulers.scheduling_shift_snr import ShiftSNRScheduler
 from up2you.utils.weight_map_utils import weight_map_to_heatmap
 from up2you.utils.smpl_utils.apose_renderer import AposeRenderer
 from up2you.utils.mesh_utils.reconstructor import Reconstructor
-from diffusers import DDPMScheduler
+from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 from einops import rearrange
 from transformers import AutoModelForImageSegmentation
 from torchvision import transforms
@@ -87,7 +88,9 @@ def preprocess_ref_imgs(
     ref_img_tensor_list = []
     ref_alpha_tensor_list = []
     for ref_img in ref_imgs:
-        ref_img_tensor, ref_alpha_tensor = load_image(ref_img, 768, 768, return_alpha=True)
+        img_alpha = load_image(ref_img, 768, 768, return_alpha=True)
+        from typing import Tuple, cast
+        ref_img_tensor, ref_alpha_tensor = cast(Tuple[torch.Tensor, torch.Tensor], img_alpha)
         ref_img_tensor_list.append(ref_img_tensor)
         ref_alpha_tensor_list.append(ref_alpha_tensor)
     ref_img_tensor = torch.stack(ref_img_tensor_list)
@@ -255,7 +258,7 @@ def infer_in_the_wild(
         ref_alphas=ref_alphas,
     )
 
-    images = rgb_pipe(
+    out = rgb_pipe(
         prompt=["Multi-view Human, Full Body, High Quality, HDR"],
         control_image=target_poses,
         num_images_per_prompt=6,
@@ -268,7 +271,8 @@ def infer_in_the_wild(
         width=768,
         reference_rgbs=ref_rgbs,
         weight_maps=weight_maps,
-    ).images
+    )
+    images = out.images if hasattr(out, 'images') else (out[0] if isinstance(out, tuple) else out)
 
     weight_maps_heatmap = weight_map_to_heatmap(
         weight_maps, 
@@ -299,7 +303,7 @@ def infer_in_the_wild(
     mv_rgbs = torch.stack(mv_rgbs)
     mv_rgbs = mv_rgbs.permute(0, 3, 1, 2).to(device)
 
-    normals = normal_pipe(
+    out_n = normal_pipe(
         prompt=["Multi-view Human, Full Body, Normal Map, High Quality, HDR"],
         control_image=target_poses,
         num_images_per_prompt=6,
@@ -311,7 +315,8 @@ def infer_in_the_wild(
         height=768,
         width=768,
         reference_rgbs=mv_rgbs,
-    ).images
+    )
+    normals = out_n.images if hasattr(out_n, 'images') else (out_n[0] if isinstance(out_n, tuple) else out_n)
 
     normals_rgba = segment_rgbs(normals, seg_model, device)
 
