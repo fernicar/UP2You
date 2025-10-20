@@ -3,12 +3,12 @@
 
 import numpy as np
 
-# Restore removed aliases used by legacy code
-if not hasattr(np, 'bool'):
+# Restore removed aliases used by legacy code (avoid touching when present to prevent warnings)
+if 'bool' not in np.__dict__:
     np.bool = np.bool_  # type: ignore[attr-defined]
-if not hasattr(np, 'int'):
+if 'int' not in np.__dict__:
     np.int = int  # type: ignore[attr-defined]
-if not hasattr(np, 'float'):
+if 'float' not in np.__dict__:
     np.float = float  # type: ignore[attr-defined]
-if not hasattr(np, 'complex'):
+if 'complex' not in np.__dict__:
     np.complex = complex  # type: ignore[attr-defined]

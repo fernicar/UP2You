@@ -2,14 +2,14 @@ import os
 import argparse
 import torch
 import numpy as np
-# NumPy 2.x compatibility for deprecated aliases
-if not hasattr(np, 'bool'):
+# NumPy 2.x compatibility for deprecated aliases (avoid touching when present to prevent warnings)
+if 'bool' not in np.__dict__:
     np.bool = np.bool_
-if not hasattr(np, 'int'):
+if 'int' not in np.__dict__:
     np.int = int
-if not hasattr(np, 'float'):
+if 'float' not in np.__dict__:
     np.float = float
-if not hasattr(np, 'complex'):
+if 'complex' not in np.__dict__:
     np.complex = complex
 from PIL import Image, ImageOps
 from torchvision.utils import save_image

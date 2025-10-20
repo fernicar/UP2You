@@ -15,7 +15,7 @@ from up2you.utils.smpl_utils.render import Renderer
 from up2you.utils.smpl_utils.camera import Camera
 from up2you.utils.smpl_utils.mesh import normalize_vertices
 from .mesh_util import poisson
-from .project_mesh import multiview_color_projection, get_cameras_list
+from . import project_mesh as project_mesh_mod
 
 from up2you.utils.smpl_utils.smpl_util import SMPLX, part_removal, apply_vertex_mask
 
@@ -97,11 +97,13 @@ class Reconstructor:
         return masks, target_normals
 
     def proj_texture(self, fused_images, vertices, faces):
+        if not getattr(project_mesh_mod, 'P3D_AVAILABLE', False):
+            raise ImportError("pytorch3d is required for texture projection; install pytorch3d or skip color projection.")
         mesh = to_py3d_mesh(vertices, faces)
         mesh = mesh.to(self.device)
         camera_focal =  1/2
-        cameras_list = get_cameras_list(self.color_views, device=self.device, focal=camera_focal)
-        mesh = multiview_color_projection(mesh, fused_images, camera_focal=camera_focal, resolution=self.resolution, weights=self.weights.squeeze().cpu().numpy(),
+        cameras_list = project_mesh_mod.get_cameras_list(self.color_views, device=self.device, focal=camera_focal)
+        mesh = project_mesh_mod.multiview_color_projection(mesh, fused_images, camera_focal=camera_focal, resolution=self.resolution, weights=self.weights.squeeze().cpu().numpy(),
                                         device=self.device, complete_unseen=True, confidence_threshold=0.2, cameras_list=cameras_list)
         return mesh
 
@@ -180,6 +182,12 @@ class Reconstructor:
 
         vertices = torch.from_numpy(final_mesh.vertices).float().to(self.device)
         faces = torch.from_numpy(final_mesh.faces).long().to(self.device)
+
+        if not getattr(project_mesh_mod, 'P3D_AVAILABLE', False):
+            # Save geometry-only mesh without vertex colors
+            final_mesh_path = os.path.join(output_dir, "result.obj")
+            trimesh.Trimesh(vertices=vertices.detach().cpu().numpy(), faces=faces.detach().cpu().numpy()).export(final_mesh_path)
+            return final_mesh_path
 
         masked_color = []
         for tmp in color_pils:
