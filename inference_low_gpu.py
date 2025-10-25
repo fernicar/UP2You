@@ -29,7 +29,7 @@ from einops import rearrange
 from transformers import AutoModelForImageSegmentation
 from torchvision import transforms
 import random
-from typing import Tuple, cast, Any
+from typing import Tuple, cast
 from up2you.utils.mesh_utils.mesh_util import save_obj_mesh
 import shutil
 from up2you.utils.mesh_utils.mesh_common_renderer import CommonRenderer

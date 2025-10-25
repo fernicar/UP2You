@@ -29,6 +29,7 @@ from einops import rearrange
 from transformers import AutoModelForImageSegmentation
 from torchvision import transforms
 import random
+from typing import Tuple, cast
 from up2you.utils.mesh_utils.mesh_util import save_obj_mesh
 import shutil
 from up2you.utils.mesh_utils.mesh_common_renderer import CommonRenderer
@@ -89,7 +90,6 @@ def preprocess_ref_imgs(
     ref_alpha_tensor_list = []
     for ref_img in ref_imgs:
         img_alpha = load_image(ref_img, 768, 768, return_alpha=True)
-        from typing import Tuple, cast
         ref_img_tensor, ref_alpha_tensor = cast(Tuple[torch.Tensor, torch.Tensor], img_alpha)
         ref_img_tensor_list.append(ref_img_tensor)
         ref_alpha_tensor_list.append(ref_alpha_tensor)
