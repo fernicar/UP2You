@@ -1,6 +1,4 @@
-import imp
 import os
-from pickle import NONE
 # os.environ['PYOPENGL_PLATFORM'] = 'osmesa'
 import torch
 import trimesh
@@ -17,8 +15,8 @@ import json
 from .geometry import convert_to_full_img_cam
 from utils.imutils import crop
 
+import math
 try:
-    import math
     import pyrender
     from pyrender.constants import RenderFlags
 except:
@@ -30,14 +28,17 @@ try:
 except:
     pass
 
-from pytorch3d.structures.meshes import Meshes
-# from pytorch3d.renderer.mesh.renderer import MeshRendererWithFragments
-
-from pytorch3d.renderer import (
-    look_at_view_transform, FoVPerspectiveCameras, PerspectiveCameras, AmbientLights, PointLights,
-    RasterizationSettings, BlendParams, MeshRenderer, MeshRasterizer, SoftPhongShader,
-    SoftSilhouetteShader, HardPhongShader, HardGouraudShader, HardFlatShader, TexturesVertex
-)
+# Optional PyTorch3D imports (unused; keep optional for compatibility)
+try:
+    from pytorch3d.structures.meshes import Meshes  # noqa: F401
+    # from pytorch3d.renderer.mesh.renderer import MeshRendererWithFragments
+    from pytorch3d.renderer import (  # noqa: F401
+        look_at_view_transform, FoVPerspectiveCameras, PerspectiveCameras, AmbientLights, PointLights,
+        RasterizationSettings, BlendParams, MeshRenderer, MeshRasterizer, SoftPhongShader,
+        SoftSilhouetteShader, HardPhongShader, HardGouraudShader, HardFlatShader, TexturesVertex
+    )
+except Exception:
+    Meshes = None  # type: ignore
 
 import logging
 

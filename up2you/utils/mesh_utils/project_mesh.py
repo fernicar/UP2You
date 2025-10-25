@@ -2,16 +2,43 @@ from typing import List
 import torch
 import numpy as np
 from PIL import Image
-from pytorch3d.renderer.cameras import look_at_view_transform, OrthographicCameras, CamerasBase
-from pytorch3d.renderer.mesh.rasterizer import Fragments
-from pytorch3d.structures import Meshes
-from pytorch3d.renderer import (
-    RasterizationSettings,
-    TexturesVertex,
-    FoVPerspectiveCameras,
-    FoVOrthographicCameras,
-)
-from pytorch3d.renderer import MeshRasterizer
+
+# Optional PyTorch3D imports so this module can be imported without pytorch3d
+P3D_AVAILABLE = True
+try:
+    from pytorch3d.renderer.cameras import look_at_view_transform, OrthographicCameras, CamerasBase  # type: ignore
+    from pytorch3d.renderer.mesh.rasterizer import Fragments  # type: ignore
+    from pytorch3d.structures import Meshes  # type: ignore
+    from pytorch3d.renderer import (  # type: ignore
+        RasterizationSettings,
+        TexturesVertex,
+        FoVPerspectiveCameras,
+        FoVOrthographicCameras,
+    )
+    from pytorch3d.renderer import MeshRasterizer  # type: ignore
+except Exception:
+    P3D_AVAILABLE = False
+    # Minimal stubs for type hints and to avoid NameError when pytorch3d is missing
+    class Meshes:  # type: ignore
+        pass
+    class TexturesVertex:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            raise ImportError("pytorch3d is required for TexturesVertex; please install pytorch3d or skip features that depend on it.")
+    class CamerasBase:  # type: ignore
+        pass
+    class OrthographicCameras(CamerasBase):  # type: ignore
+        pass
+    def look_at_view_transform(*args, **kwargs):  # type: ignore
+        raise ImportError("pytorch3d is required for look_at_view_transform; please install pytorch3d.")
+    class FoVPerspectiveCameras(CamerasBase):  # type: ignore
+        pass
+    class FoVOrthographicCameras(CamerasBase):  # type: ignore
+        pass
+    class MeshRasterizer:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            raise ImportError("pytorch3d is required for MeshRasterizer; please install pytorch3d.")
+    class Fragments:  # type: ignore
+        pass
 
 def render_pix2faces_py3d(meshes, cameras, H=512, W=512, blur_radius=0.0, faces_per_pixel=1):
     """
@@ -87,6 +114,8 @@ class Pix2FacesRenderer:
 pix2faces_renderer = None
 
 def get_visible_faces(meshes: Meshes, cameras: CamerasBase, resolution=1024):
+    if not P3D_AVAILABLE:
+        raise ImportError("pytorch3d is required for get_visible_faces; please install pytorch3d or skip reconstruction color projection.")
     # global pix2faces_renderer
     # if pix2faces_renderer is None:
     #     pix2faces_renderer = Pix2FacesRenderer()
@@ -117,6 +146,8 @@ def project_color(meshes: Meshes, cameras: CamerasBase, image: torch.Tensor, use
             - "valid_verts" (Tensor of [M,3]): The indices of the vertices being projected.
             - "valid_colors" (Tensor of [M,3]): The interpolated colors for the valid vertices.
     """
+    if not P3D_AVAILABLE:
+        raise ImportError("pytorch3d is required for color projection; please install pytorch3d or skip reconstruction color projection.")
     meshes = meshes.to(device)
     cameras = cameras.to(device)
 
@@ -234,6 +265,8 @@ def multiview_color_projection(meshes: Meshes, image_list: torch.Tensor, cameras
     Returns:
         Meshes: the colored mesh
     """
+    if not P3D_AVAILABLE:
+        raise ImportError("pytorch3d is required for multiview_color_projection; please install pytorch3d or skip reconstruction color projection.")
     # 1. preprocess inputs
     if image_list is None:
         raise ValueError("image_list is None")

@@ -89,7 +89,7 @@ if __name__ == "__main__":
     Compare the alpha values for different noise schedulers.
     """
     import matplotlib.pyplot as plt
-    from diffusers import DDPMScheduler
+    from diffusers.schedulers.scheduling_ddpm import DDPMScheduler
 
     from .scheduler_utils import compute_alpha
 

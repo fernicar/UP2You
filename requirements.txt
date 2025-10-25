@@ -29,7 +29,6 @@ smplx==0.1.28
 tensorboardx==2.6.4
 termcolor
 timm
-torch_scatter==2.1.2
 tqdm==4.65.0
 transformers==4.46.2
 trimesh==4.6.12

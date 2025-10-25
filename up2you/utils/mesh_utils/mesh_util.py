@@ -21,7 +21,6 @@ import torch
 import torchvision
 import trimesh
 import json
-from pytorch3d.io import load_obj
 import os
 from termcolor import colored
 import os.path as osp
@@ -29,16 +28,34 @@ from scipy.spatial import cKDTree
 import _pickle as cPickle
 import open3d as o3d
 
-from pytorch3d.structures import Meshes
+# Optional PyTorch3D imports to keep this module importable without pytorch3d
+P3D_AVAILABLE = True
+try:
+    from pytorch3d.io import load_obj  # type: ignore
+    from pytorch3d.structures import Meshes  # type: ignore
+    from pytorch3d.renderer.mesh import rasterize_meshes  # type: ignore
+    from pytorch3d.loss import (  # type: ignore
+        mesh_laplacian_smoothing,
+        mesh_normal_consistency,
+    )
+except Exception:
+    P3D_AVAILABLE = False
+    def load_obj(*args, **kwargs):
+        raise ImportError("pytorch3d is required for load_obj; please install pytorch3d or skip features that depend on it.")
+    class Meshes:  # minimal stub for type hints
+        pass
+    def rasterize_meshes(*args, **kwargs):
+        raise ImportError("pytorch3d is required for rasterize_meshes; please install pytorch3d or skip features that depend on it.")
+    def mesh_laplacian_smoothing(*args, **kwargs):
+        raise ImportError("pytorch3d is required for mesh_laplacian_smoothing; please install pytorch3d or skip features that depend on it.")
+    def mesh_normal_consistency(*args, **kwargs):
+        raise ImportError("pytorch3d is required for mesh_normal_consistency; please install pytorch3d or skip features that depend on it.")
+
 import torch.nn.functional as F
 
-
-from pytorch3d.renderer.mesh import rasterize_meshes
 from PIL import Image, ImageFont, ImageDraw
 from kaolin.ops.mesh import check_sign
 from kaolin.metrics.trianglemesh import point_to_mesh_distance
-
-from pytorch3d.loss import (mesh_laplacian_smoothing, mesh_normal_consistency)
 
 # import tinyobjloader
 
